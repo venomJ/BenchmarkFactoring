@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Benchmark Factoring</string>
+
+    <string name="hello_world">Input the number you want to calculate</string>
+    <string name="action_settings">Settings</string>
+    <string name="textView_Thread">How many threads to use</string>
+    <string name="btn_calc">Calculate</string>
+</resources>
