@@ -8,14 +8,26 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
+class Global {
+    public static int ivar1,ivar2;
+    public static String svar1 = "",svar2 = "Go on";
+    public static int[] myarray1=new int[10];
+}
 
 public class MainActivity extends ActionBarActivity {
 
     AlertDialog.Builder dlgAlert  = null;
+    private Timer myTimer = null;
+    private static String sharedString = new String();
+    private long startTS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,92 +73,98 @@ public class MainActivity extends ActionBarActivity {
         mEdit = (EditText)findViewById(R.id.editInteraction);
         final int InteractionLevel = Integer.parseInt(mEdit.getText().toString());
 
-        long startTS = System.currentTimeMillis();
+        startTS = System.currentTimeMillis();
+        //
+        CheckBox twoThreads = (CheckBox) findViewById (R.id.checkBox_2Threads);
+        if(twoThreads.isChecked())
+        {// we are doing 2 threads only
+            // UI thread and computation thread communicate through shared variables
+            // create a timer
+            myTimer = new Timer();
+            myTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    TimerMethod();
+                }
 
+            }, 0, 1000);//every 1 second
 
-        // Calculating in other threads
-        ArrayList<Thread> tList = new ArrayList<Thread>();
-        long step = num / threadCount;
-        long curVal = 1;
-        for(int i = 0 ; i < threadCount ; i++) {
-            long s = (i == 0)? 1 : step * i;
-            long e = (i == (threadCount - 1))? num : (s + step);
-            RunFactor rf = new RunFactor(num, InteractionLevel, s, e);
-            rf.act = this;
-            Thread t = new Thread(rf);
-            tList.add(t);
-            t.start();
-        }
-
-        for(int i = 0 ; i < tList.size() ; i++) {
+            Global.svar2 = "Go on";
             try {
-                Thread t = tList.get(i);
+                RunFactor rf = new RunFactor(num, 0, 1, num, tv, Global.svar1);
+                rf.act = this;
+                Thread t = new Thread(rf);
                 t.join();
+                t.start();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-
-        /*
-        // Calculating in UI thread - only 1 thread
-        long nCount = 0;
-        for (long l = 1; l <= num; l++) {
-            if (num % l == 0) {
-                nCount++;
+        else
+        {//original
+            // Calculating in other threads
+            ArrayList<Thread> tList = new ArrayList<Thread>();
+            long step = num / threadCount;
+            long curVal = 1;
+            for(int i = 0 ; i < threadCount ; i++) {
+                long s = (i == 0)? 1 : step * i;
+                long e = (i == (threadCount - 1))? num : (s + step);
+                RunFactor rf = new RunFactor(num, InteractionLevel, s, e, tv, null);
+                rf.act = this;
+                Thread t = new Thread(rf);
+                tList.add(t);
+                t.start();
             }
-            if(l % 1000000 == 0) {
-                SharedPreferences.Editor localEditor = getPreferences(0).edit();
 
-                do{
-                    localEditor.putLong("Factor key", l);
-                    localEditor.commit();
-                }while(false);
-
-                long endTS = System.currentTimeMillis();
-                long delta = endTS - startTS;
-                double td = (double)delta / 1000;
-                //tv.setText("Time used: " + td );
-
-                //String msg = "You input value is:" + num + "\n";
-                //msg += ("Time used: " + td + "\n");
-                //msg += ("Factors found: " + count);
-                dlgAlert.setMessage("Just test");
-                dlgAlert.setTitle("Result");
-                dlgAlert.setPositiveButton("OK", null);
-                dlgAlert.setCancelable(true);
-                AlertDialog.Builder ok = dlgAlert.setPositiveButton("Ok",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                dlgAlert.create().show();
+            for(int i = 0 ; i < tList.size() ; i++) {
+                try {
+                    Thread t = tList.get(i);
+                    t.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
-        }*/
-
-        //long count = rf.getResultCount();
+        }
 
         long endTS = System.currentTimeMillis();
         long delta = endTS - startTS;
         double td = (double)delta / 1000;
 
         tv.setText("Time used: " + td );
-        /*
-        AlertDialog.Builder dlgAlert  = new AlertDialog.Builder(this);
-        String msg = "You input value is:" + num + "\n";
-        msg += ("Time used: " + td + "\n");
-        //msg += ("Factors found: " + count);
-        dlgAlert.setMessage(msg);
-        dlgAlert.setTitle("Result");
-        dlgAlert.setPositiveButton("OK", null);
-        dlgAlert.setCancelable(true);
-        AlertDialog.Builder ok = dlgAlert.setPositiveButton("Ok",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
-        dlgAlert.create().show();
-        */
     }
+
+    private void TimerMethod()
+    {
+        //This method is called directly by the timer
+        //and runs in the same thread as the timer.
+
+        //We call the method that will work with the UI
+        //through the runOnUiThread method.
+        this.runOnUiThread(Timer_Tick);
+    }
+
+
+    private Runnable Timer_Tick = new Runnable() {
+        public void run() {
+
+            //This method runs in the same thread as the UI.
+
+            //Do something to the UI thread here
+            TextView tv = (TextView) findViewById(R.id.textResult);
+            if(Global.svar2.length() > 0) {
+                tv.setText(Global.svar1);
+                //Global.svar1 = "Outdated";
+            }
+            else
+            {
+                myTimer.cancel();
+                myTimer.purge();
+                long endTS = System.currentTimeMillis();
+                long delta = endTS - startTS;
+                double td = (double)delta / 1000;
+
+                tv.setText(Global.svar1 + " Time used: " + td );
+            }
+        }
+    };
 }

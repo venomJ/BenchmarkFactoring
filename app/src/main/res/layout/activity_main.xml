@@ -19,7 +19,7 @@
         android:layout_below="@+id/textView"
         android:layout_alignRight="@+id/textView"
         android:layout_alignEnd="@+id/textView"
-        android:layout_marginTop="19dp"
+        android:layout_marginTop="2dp"
         android:text="50000000"
         android:numeric="signed" />
 
@@ -43,7 +43,7 @@
         android:layout_below="@+id/textView2"
         android:layout_alignLeft="@+id/editNumber"
         android:layout_alignStart="@+id/editNumber"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="2dp"
         android:text="1"
         android:numeric="signed" />
 
@@ -56,7 +56,7 @@
         android:layout_below="@+id/editThread"
         android:layout_alignRight="@+id/editThread"
         android:layout_alignEnd="@+id/editThread"
-        android:layout_marginTop="110dp" />
+        android:layout_marginTop="65dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -91,6 +91,15 @@
         android:layout_below="@+id/textView3"
         android:layout_alignRight="@+id/buttonCalc"
         android:layout_alignEnd="@+id/buttonCalc"
-        android:layout_marginTop="21dp" />
+        android:layout_marginTop="2dp" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Two Threads"
+        android:id="@+id/checkBox_2Threads"
+        android:layout_below="@+id/editInteraction"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

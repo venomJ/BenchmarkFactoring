@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Environment;
+import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -15,21 +16,25 @@ import java.io.IOException;
 
 public class RunFactor implements Runnable {
     public Activity act = null;
+    public long nCount = 0;
     private long nNumber = 500000;
     private long nStart = 1;
     private long nEnd = 500000;
-    private long nCount = 0;
     private int interactionlvl = 0;
+    private TextView txtView = null;
+    private String sharedVariable = null;
 
     //private BufferedWriter wbr = null;
     //private BufferedReader rbr = null;
 
 
-    RunFactor(long n, int il, long s, long e) {
+    RunFactor(long n, int il, long s, long e, TextView tv, String sv) {
         nNumber = n;
         interactionlvl = il;
         nStart = s;
         nEnd = e;
+        txtView = tv;
+        sharedVariable = sv;
 
         /*
         File sdcard = Environment.getExternalStorageDirectory();
@@ -66,7 +71,7 @@ public class RunFactor implements Runnable {
         //calculateFactors(num, 1, num);
         long step = (interactionlvl == 0) ? nEnd + 1 : (nEnd - nStart) / interactionlvl;
 
-        long nCount = 0;
+        //long nCount = 0;
         for (long l = nStart; l <= nEnd; l++) {
             if (nNumber % l == 0) {
                 nCount++;
@@ -76,7 +81,20 @@ public class RunFactor implements Runnable {
                 if (range > 0 && range % step == 0) {
                     // do interaction here
                     //readConfigFile();
-                    writeConfigFile("foo bar");
+                    //writeConfigFile("foo bar");
+                    // write count number to a text file
+                    writeConfigFile("Count:" + nCount);
+                    // update display in main UI thread
+                    //txtView.setText("Processed number: " + l );
+                }
+                if(l % 5000 == 0)
+                {
+                    // update shared variable
+                    if(sharedVariable != null) {
+                        Global.svar1 = "Processed number: " + l;
+                        //txtView.setText("Processed number: " + l);
+                        //writeConfigFile("Count:" + nCount);
+                    }
                 }
            // }
             /*
@@ -99,6 +117,8 @@ public class RunFactor implements Runnable {
                 dlgAlert.create().show();
             }*/
         }
+        if(sharedVariable != null)
+            Global.svar2 = "";//finished
         /*
         if(nNumber == nEnd) {
             System.out.println("Writing configure file...");
@@ -145,7 +165,8 @@ public class RunFactor implements Runnable {
         StringBuilder text = new StringBuilder();
         try {
             File sdcard = Environment.getExternalStorageDirectory();
-            File file = new File(sdcard,"factorTest.txt");
+            String filename = "factorTest-" + this.toString();
+            File file = new File(sdcard,filename);
 
             BufferedWriter wbr = new BufferedWriter(new FileWriter(file));
             wbr.write(config);
