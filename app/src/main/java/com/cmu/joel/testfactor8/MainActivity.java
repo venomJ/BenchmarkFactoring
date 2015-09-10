@@ -3,8 +3,10 @@ package com.cmu.joel.testfactor8;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +17,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import android.os.Handler;
+import java.util.logging.LogRecord;
 
 class Global {
     public static int ivar1,ivar2;
@@ -59,6 +63,23 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    public Handler _handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            //Log.d(TAG, String.format("Handler.handleMessage(): msg=%s", msg));
+            // This is where main activity thread receives messages
+            // Put here your handling of incoming messages posted by other threads
+            if(msg.what == 999) {
+                TextView tv = (TextView) findViewById(R.id.textResult);
+                if (Global.svar2.length() > 0) {
+                    tv.setText(Global.svar1);
+                    //Global.svar1 = "Outdated";
+                }
+            }
+            super.handleMessage(msg);
+        }
+    };
+
     public void onButtonCalcClicked(View view) {
         // clear result
         TextView tv = (TextView)findViewById(R.id.textResult);
@@ -89,9 +110,11 @@ public class MainActivity extends ActionBarActivity {
 
             }, 0, 1000);//every 1 second
 
+            Global.svar1 = "";
             Global.svar2 = "Go on";
+            
             try {
-                RunFactor rf = new RunFactor(num, 0, 1, num, tv, Global.svar1);
+                RunFactor rf = new RunFactor(num, 0, 1, num, tv, Global.svar1, _handler);
                 rf.act = this;
                 Thread t = new Thread(rf);
                 t.join();
@@ -109,7 +132,7 @@ public class MainActivity extends ActionBarActivity {
             for(int i = 0 ; i < threadCount ; i++) {
                 long s = (i == 0)? 1 : step * i;
                 long e = (i == (threadCount - 1))? num : (s + step);
-                RunFactor rf = new RunFactor(num, InteractionLevel, s, e, tv, null);
+                RunFactor rf = new RunFactor(num, InteractionLevel, s, e, tv, null, _handler);
                 rf.act = this;
                 Thread t = new Thread(rf);
                 tList.add(t);

@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Environment;
+import android.os.Message;
 import android.widget.TextView;
+import android.os.Handler;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,15 +28,17 @@ public class RunFactor implements Runnable {
 
     //private BufferedWriter wbr = null;
     //private BufferedReader rbr = null;
+    private Handler msgHandler = null;
 
 
-    RunFactor(long n, int il, long s, long e, TextView tv, String sv) {
+    RunFactor(long n, int il, long s, long e, TextView tv, String sv, Handler h) {
         nNumber = n;
         interactionlvl = il;
         nStart = s;
         nEnd = e;
         txtView = tv;
         sharedVariable = sv;
+        msgHandler = h;
 
         /*
         File sdcard = Environment.getExternalStorageDirectory();
@@ -87,13 +91,16 @@ public class RunFactor implements Runnable {
                     // update display in main UI thread
                     //txtView.setText("Processed number: " + l );
                 }
-                if(l % 5000 == 0)
+                if(l % 5000000 == 0)
                 {
                     // update shared variable
                     if(sharedVariable != null) {
                         Global.svar1 = "Processed number: " + l;
                         //txtView.setText("Processed number: " + l);
                         //writeConfigFile("Count:" + nCount);
+                        Message msg = Message.obtain();
+                        msg.what = 999;
+                        msgHandler.sendMessage(msg);
                     }
                 }
            // }
